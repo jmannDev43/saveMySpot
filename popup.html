@@ -1,0 +1,37 @@
+<!doctype html>
+<style type="text/css">
+	#mainPopup {
+		padding: 10px;
+        margin: 20px;
+		/*height: 200px;*/
+		width: 250px;
+		font-family: Helvetica, Ubuntu, Arial, sans-serif;
+	}
+    p {
+        font-size: 14px;
+    }
+    .infoIcon {
+        position: absolute;
+        z-index: 9999;
+        left: 18px;
+        top: 26px;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="popup.js"></script>
+
+<div id="mainPopup">
+    <i class="infoIcon material-icons">info</i>
+    <div class="card grey lighten-3">
+        <div class="card-content">
+            <p>To save spots, <b class="blue-text">double-click</b> anywhere on the page.</p>
+            <br>
+            <!--// TODO: Update keyboard shortcut / text -->
+            <p>Type <b class="blue-text">ctrl+shift+#</b> to navigate to spots.</p>
+        </div>
+    </div>
+    <!--// TODO: Look into disable dblclick functionality -->
+    <!--// TODO: Add clear spots on current tab button -->
+</div>
