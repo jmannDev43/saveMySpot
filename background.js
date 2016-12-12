@@ -1,64 +1,120 @@
 
-tabCounts = {};
+var isEnabled = false;
+var tabCounts = {};
+var isInjected = false;
 
+var colors = {
+    grey: '#6d6d6d',
+    blue: '#002957'
+};
+
+// onMessage
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 
-    if (request.action == "inject") {
-        // create initial mapping object for all tabs in local storage
-        chrome.tabs.query({}, function(tabs){
-            tabs.forEach(function(tab) {
-                tabCounts[tab.id] = 0;
-            });
-        });
+    if (request.from === 'popup'){
 
-        // Set initial spot count to 0 when extension is loaded
-        chrome.browserAction.setBadgeText({ text: "0" });
-        chrome.browserAction.setBadgeBackgroundColor({
-            color: "#2b2a2b"
-        });
+        if (request.action === 'enable' || request.action === 'disable'){
+            toggleEnabled(request);
+        }
 
-        // inject js & css
-        chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-           var selectedTab = tabs[0];
-           chrome.tabs.insertCSS(selectedTab.id, { file: "spot.css" });
-           chrome.tabs.executeScript(selectedTab.id, { file: "spot.js" });
-        });
+        if (request.action === 'clearSpots'){
+            clearSpots();
+        }
+
+    }
+
+    if (request.action == "inject" && !isInjected) {
+        isInjected = true;
+        inject();
     }
 
     if (request.action == 'updatePopup'){
-        if (request.spotCount){
-            chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-                var selectedTab = tabs[0];
-                if (selectedTab){
-                    tabCounts[selectedTab.id] = request.spotCount;
-                    chrome.browserAction.setBadgeText({text: request.spotCount.toString()});
-                    chrome.browserAction.setBadgeBackgroundColor({
-                        color: "#2b2a2b"
-                    });
-                }
-            });
-        }
+        updatePopup(request);
     }
-
 });
 
-
+// tab events
 chrome.tabs.onActivated.addListener(function (request, sender, sendResponse) {
-    if (!$('#enterSpotModal')){
-        var top = null;
-        var left = null;
-        var spotModal = '\
-        <div id="enterSpotModal" class="hidden" style="position: absolute; color: white; ' + top + left + '"> \
-            <input placeholder="Enter Spot # (then Enter)" id="spotNumber" type="text"> \
-        </div>';
+    if (isEnabled){
+        sendBackgroundMessage('appendModal');
 
-        $('body').append(spotModal);
+        var spotCount = tabCounts[request.tabId];
+        if (spotCount !== undefined){
+            updatePopup({ text: spotCount });
+        }
+
+        // TODO: send spotCount to spot.js
     }
-
-    var spotCount = tabCounts[request.tabId];
-    chrome.browserAction.setBadgeText({ text: spotCount.toString() });
 });
 
 chrome.tabs.onRemoved.addListener(function (request, sender, sendResponse){
     delete tabCounts[request];
 });
+
+// handle reload
+chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
+    if (tab.url !== undefined && changeInfo.url === undefined){
+        updatePopup({ spotCount: 0 });
+        inject();
+        var isEnabled = window.localStorage.getItem('isEnabled') ? 'enable' : 'disable';
+        sendBackgroundMessage(isEnabled);
+    }
+});
+
+// functions
+function inject(){
+    // create initial mapping object for all tabs in local storage
+    chrome.tabs.query({}, function(tabs){
+        tabs.forEach(function(tab) {
+            tabCounts[tab.id] = 0;
+        });
+    });
+
+    sendBackgroundMessage('appendModal');
+
+    // Set initial spot count to 0 when extension is loaded
+    updatePopup({ spotCount: 0 });
+
+    // inject js & css
+    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+        var selectedTab = tabs[0];
+        if (selectedTab){
+            chrome.tabs.insertCSS(selectedTab.id, { file: "spot.css" });
+            chrome.tabs.executeScript(selectedTab.id, { file: "spot.js" });
+        }
+    });
+}
+
+function updatePopup(request){
+    if (request.spotCount !== undefined){
+        var color = request.spotCount > 0 ? colors.blue : colors.grey;
+        chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+            var selectedTab = tabs[0];
+            if (selectedTab){
+                tabCounts[selectedTab.id] = request.spotCount;
+                chrome.browserAction.setBadgeText({text: request.spotCount.toString()});
+                chrome.browserAction.setBadgeBackgroundColor({
+                    color: color
+                });
+            }
+        });
+    }
+}
+
+function toggleEnabled(request) {
+    isEnabled = request.action === 'enable';
+    // store in local storage so it can be reset on reload
+    window.localStorage.setItem('isEnabled', isEnabled);
+    sendBackgroundMessage(request.action);
+}
+
+function clearSpots(){
+    updatePopup({ spotCount: 0 });
+    sendBackgroundMessage('clearSpots');
+}
+
+function sendBackgroundMessage(action) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+        chrome.tabs.sendMessage(tabs[0].id, {action: action, from: 'background'}, function(response) {});
+    });
+}

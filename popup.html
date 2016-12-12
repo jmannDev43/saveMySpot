@@ -3,35 +3,57 @@
 	#mainPopup {
 		padding: 10px;
         margin: 20px;
-		/*height: 200px;*/
-		width: 250px;
+		width: 350px;
 		font-family: Helvetica, Ubuntu, Arial, sans-serif;
 	}
-    p {
+    ol {
+        -webkit-padding-start: 20px;
+    }
+    p, li {
         font-size: 14px;
     }
     .infoIcon {
         position: absolute;
         z-index: 9999;
         left: 18px;
-        top: 26px;
+        top: 60px;
+    }
+
+    .switch label input[type=checkbox]:checked+.lever{
+        background-color: #a6cbf1 !important;
+    }
+    .switch label input[type=checkbox]:checked+.lever:after {
+        background-color: #2196F3 !important;
     }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="jquery-3.1.1.min.js"></script>
 <script src="popup.js"></script>
 
 <div id="mainPopup">
+    <div class="switch">
+        <label>
+            OFF
+            <input id="isEnabled" type="checkbox">
+            <span class="lever"></span>
+            ON
+        </label>
+    </div>
+    <br>
     <i class="infoIcon material-icons">info</i>
     <div class="card grey lighten-3">
         <div class="card-content">
-            <p>To save spots, <b class="blue-text">double-click</b> anywhere on the page.</p>
-            <br>
+            <p>To save spots...</p>
+            <ol>
+                <li>Click switch above</li>
+                <li><b class="blue-text">double-click</b> anywhere on the page.</li>
+                <li>Use keyboard shortcut <b class="blue-text">Ctrl + Shift + #</b> to navigate to spots.</li>
+            </ol>
+
             <!--// TODO: Update keyboard shortcut / text -->
-            <p>Type <b class="blue-text">ctrl+shift+#</b> to navigate to spots.</p>
+
         </div>
     </div>
-    <!--// TODO: Look into disable dblclick functionality -->
-    <!--// TODO: Add clear spots on current tab button -->
-</div>
+    <a id="clearPage" class="waves-effect waves-light btn blue">clear spots on this page</a></div>
