@@ -23,6 +23,6 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-    "tabs", "http://*/*", "https://*/*"
+    "tabs", "storage", "http://*/*", "https://*/*"
   ]
 }

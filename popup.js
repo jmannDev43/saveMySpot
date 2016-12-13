@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('dom loaded called');
-    chrome.runtime.sendMessage({ action: 'inject' }, function () {
-        console.log('add message sent');
-    });
+    chrome.runtime.sendMessage({ action: 'inject' }, function () {});
 
     $('#isEnabled').on('change', function (e) {
         var isEnabled = $(e.target).prop('checked');
@@ -11,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     $('#clearPage').on('click', function (e) {
-        console.log('clear clicked');
         chrome.runtime.sendMessage({ action: 'clearSpots', from: 'popup' }, function () {});
     });
 });

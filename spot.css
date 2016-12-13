@@ -45,25 +45,48 @@
 }
 
 #enterSpotModal {
-    position: absolute;
-    color: white;
-    display: block;
+    bottom: 388px;
+    box-shadow: rgba(0, 0, 0, 0.137255) 0px 2px 2px 0px, rgba(0, 0, 0, 0.117647) 0px 1px 5px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px -2px;
+    box-sizing: border-box;
+    color: rgb(255, 255, 255);
     height: 137px;
-    width: 253px;
-    background: white;
-    padding: 1em;
-    border-radius: 4px;
-    border: none;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    left: 740px;
+    position: absolute;
+    right: 672px;
+    text-size-adjust: 100%;
+    top: 405px;
+    width: 262px;
     z-index: 99999;
+    column-rule-color: rgb(255, 255, 255);
+    perspective-origin: 126.5px 68.5px;
+    transform-origin: 126.5px 68.5px;
+    background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box;
+    border: 0px none rgb(255, 255, 255);
+    border-radius: 4px 4px 4px 4px;
+    font: normal normal normal normal 15px / 22.5px Roboto, sans-serif;
+    outline: rgb(255, 255, 255) none 0px;
+    padding: 15px;
 }
 
 #spotNumber {
-    background-color: white;
-    border-bottom: 1px solid lightgrey;
-    border-radius: 2px;
-    margin: 2em;
-    width: 170px;
-    color: #2196F3;
+    box-sizing: content-box;
+    color: rgb(33, 150, 243);
+    height: 45px;
     text-align: center;
+    text-size-adjust: 100%;
+    width: 170px;
+    column-rule-color: rgb(33, 150, 243);
+    perspective-origin: 85px 23px;
+    transform-origin: 85px 23px;
+    border-top: 0px none rgb(33, 150, 243);
+    border-right: 0px none rgb(33, 150, 243);
+    border-bottom: 1px solid rgb(211, 211, 211);
+    border-left: 0px none rgb(33, 150, 243);
+    border-radius: 2px 2px 2px 2px;
+    font: normal normal normal normal 15px / normal Roboto, sans-serif;
+    margin: 30px;
+    outline: rgb(33, 150, 243) none 0px;
+    padding: 0px;
+    transition: all 0.3s ease 0s;
 }
+
