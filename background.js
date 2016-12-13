@@ -33,7 +33,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 });
 
 chrome.tabs.onCreated.addListener(function (tab) {
-    newTabId = tab.id;
     updateTabCount(tab.id, 0);
 })
 
@@ -60,12 +59,24 @@ chrome.tabs.onRemoved.addListener(function (tabId){
 
 // handle reload
 chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
-    if (tab.url !== undefined && changeInfo.url === undefined && changeInfo.status !== 'loading'){
+    var isChromePage = tab.url.indexOf('chrome://') > -1;
+    var changeKeys = Object.keys(changeInfo);
+    var isLoading = changeInfo.status === 'loading';
+
+    var urlPresent = changeKeys.indexOf('url') > -1; // will be present when tab is reloaded, but not when navigating
+    var isNavigating = changeKeys.length === 1 && changeKeys[0] === 'title'; // title will be only property when navigating in same tab
+    var isReload = tab.url !== undefined && changeInfo.url === undefined && urlPresent;
+
+    if (isReload && !isChromePage && !isLoading){
         updatePopup({ spotCount: 0 });
-        init();
         inject();
         var isEnabled = window.localStorage.getItem('isEnabled') ? 'enable' : 'disable';
         sendBackgroundMessage(isEnabled);
+    }
+
+    if (isNavigating){
+        sendBackgroundMessage('appendModal');
+        updatePopup({ spotCount: 0 });
     }
 });
 
@@ -74,6 +85,8 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
         currentwindowId = windowId;
     }
 })
+
+// TODO: window.onCreated handler?
 
 // functions
 function inject(){
