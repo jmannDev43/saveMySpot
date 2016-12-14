@@ -1,7 +1,7 @@
-
+var debug = false;
 var isEnabled = false;
 var isInjected = false;
-var currentwindowId = null;
+var currentWindowId = null;
 var colors = {
     grey: '#6d6d6d',
     blue: '#002957'
@@ -11,7 +11,7 @@ var colors = {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
 
     if (request.from === 'popup'){
-
+        debug && console.log('popup message received', request.action);
         if (request.action === 'enable' || request.action === 'disable'){
             toggleEnabled(request);
         }
@@ -23,6 +23,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
     }
 
     if (request.action == "inject" && !isInjected) {
+        debug && console.log('inject message received');
         init();
         inject();
     }
@@ -46,9 +47,7 @@ chrome.tabs.onActivated.addListener(function (tabInfo) {
             }
 
             sendBackgroundMessage('appendModal');
-            // TODO: send spotCount to spot.js
-
-            chrome.storage.local.set({ 'activeTab': tabInfo.tabId });
+            setActiveTab(tabInfo.tabId);
         });
     }
 });
@@ -58,31 +57,32 @@ chrome.tabs.onRemoved.addListener(function (tabId){
 });
 
 // handle reload
-chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
-    var isChromePage = tab.url.indexOf('chrome://') > -1;
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+    // TODO: Deal with bug where extension is refreshed, but tab hasn't been?
+
     var changeKeys = Object.keys(changeInfo);
-    var isLoading = changeInfo.status === 'loading';
+    var changedUrl = changeKeys.length === 1 && changeKeys[0] === 'title'; // title will be only property when navigating in same tab
+    var isNavigating = changeKeys.indexOf('status') > -1 && changeKeys.indexOf('url') > -1;
+    var isReload = changeKeys.length === 1 && changeKeys[0] === 'status';
 
-    var urlPresent = changeKeys.indexOf('url') > -1; // will be present when tab is reloaded, but not when navigating
-    var isNavigating = changeKeys.length === 1 && changeKeys[0] === 'title'; // title will be only property when navigating in same tab
-    var isReload = tab.url !== undefined && changeInfo.url === undefined && urlPresent;
-
-    if (isReload && !isChromePage && !isLoading){
-        updatePopup({ spotCount: 0 });
-        inject();
-        var isEnabled = window.localStorage.getItem('isEnabled') ? 'enable' : 'disable';
+    var isEnabled = window.localStorage.getItem('isEnabled') ? 'enable' : 'disable';
+    if (isEnabled === 'enable'){
+        debug && console.log('tab updated & isEnabled', changeInfo);
         sendBackgroundMessage(isEnabled);
+        inject();
+        sendBackgroundMessage('appendModal');
+        setCurrentWindow();
+    }
+    if (isReload || changedUrl || isNavigating){
+        updatePopup({ spotCount: 0, updateStorage: true });
     }
 
-    if (isNavigating){
-        sendBackgroundMessage('appendModal');
-        updatePopup({ spotCount: 0 });
-    }
+    setActiveTab(tabId);
 });
 
 chrome.windows.onFocusChanged.addListener(function (windowId) {
     if (windowId > -1){
-        currentwindowId = windowId;
+        currentWindowId = windowId;
     }
 })
 
@@ -90,10 +90,11 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
 
 // functions
 function inject(){
+    debug && console.log('injecting');
     isInjected = true;
 
     // inject js & css
-    chrome.tabs.query({ windowId: currentwindowId, active: true }, function (tabs) {
+    chrome.tabs.query({ windowId: currentWindowId, active: true }, function (tabs) {
         var selectedTab = tabs[0];
         if (selectedTab && selectedTab.url.indexOf('chrome://') === -1){
             chrome.tabs.insertCSS(selectedTab.id, { file: "spot.css" });
@@ -116,15 +117,19 @@ function initializeTabCounts(){
         tabs.forEach(function(tab) {
             updateTabCount(tab.id, 0);
             if (tab.active){
-                chrome.storage.local.set({ 'activeTab': tab.id }, function (res) {});
+                setActiveTab(tab.id);
             }
         });
     });
 }
 
+function setActiveTab(tabId) {
+    chrome.storage.local.set({ 'activeTab': tabId }, function (res) {});
+}
+
 function setCurrentWindow() {
     chrome.windows.getCurrent(function(window) {
-        currentwindowId = window.id;
+        currentWindowId = window.id;
     });
 }
 
@@ -137,7 +142,7 @@ function updateTabCount(tabId, spotCount) {
 function updatePopup(request){
     if (request.spotCount !== undefined){
         var color = request.spotCount > 0 ? colors.blue : colors.grey;
-        chrome.tabs.query({ windowId: currentwindowId, active: true }, function (tabs) {
+        chrome.tabs.query({ windowId: currentWindowId, active: true }, function (tabs) {
             var selectedTab = tabs[0];
             if (selectedTab){
                 chrome.browserAction.setBadgeText({text: request.spotCount.toString()});
@@ -161,13 +166,16 @@ function toggleEnabled(request) {
 }
 
 function clearSpots(){
-    updatePopup({ spotCount: 0 });
+    updatePopup({ spotCount: 0, updateStorage: true });
     sendBackgroundMessage('clearSpots');
 }
 
 function sendBackgroundMessage(action) {
-    chrome.tabs.query({ active: true, windowId: currentwindowId }, function(tabs){
+    chrome.tabs.query({ active: true, windowId: currentWindowId }, function(tabs){
         var selectedTab = tabs[0];
+        debug && console.log('sending background message to content', action);
+        debug && console.log('selectedTab', selectedTab);
+        debug && console.log('currentWindow', currentWindowId);
         if (selectedTab){
             chrome.tabs.sendMessage(selectedTab.id, {action: action, from: 'background'}, function(response) {});
         }

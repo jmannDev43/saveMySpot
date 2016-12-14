@@ -1,14 +1,24 @@
+var debug = false;
+
 document.addEventListener('DOMContentLoaded', function() {
-    chrome.runtime.sendMessage({ action: 'inject' }, function () {});
+    debug && console.log('sending inject message');
+    chrome.runtime.sendMessage({ action: 'inject' }, function () {
+        debug && console.log('inject message sent');
+    });
 
     $('#isEnabled').on('change', function (e) {
         var isEnabled = $(e.target).prop('checked');
         var action = isEnabled ? 'enable' : 'disable';
-        chrome.runtime.sendMessage({ action: action, from: 'popup' }, function () {});
+        debug && console.log('sending enabled change message');
+        chrome.runtime.sendMessage({ action: action, from: 'popup' }, function () {
+            debug && console.log(action + ' message sent');
+        });
     });
 
     $('#clearPage').on('click', function (e) {
-        chrome.runtime.sendMessage({ action: 'clearSpots', from: 'popup' }, function () {});
+        chrome.runtime.sendMessage({ action: 'clearSpots', from: 'popup' }, function () {
+            debug && console.log('clearSpots message sent');
+        });
     });
 });
 
