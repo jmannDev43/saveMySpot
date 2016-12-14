@@ -1,3 +1,3 @@
 # saveMySpot
 
-![logo](./saveMySpot_128.png)
+![logo](./saveMySpot_48.png)
