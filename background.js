@@ -66,6 +66,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     var isReload = changeKeys.length === 1 && changeKeys[0] === 'status';
 
     var isEnabled = window.localStorage.getItem('isEnabled') ? 'enable' : 'disable';
+    debug && console.log(isEnabled);
     if (isEnabled === 'enable'){
         debug && console.log('tab updated & isEnabled', changeInfo);
         sendBackgroundMessage(isEnabled);
@@ -86,7 +87,9 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
     }
 })
 
-// TODO: window.onCreated handler?
+// TODO: window.onCreated handler
+
+// TODO: window.onFocusChanged handler
 
 // functions
 function inject(){
